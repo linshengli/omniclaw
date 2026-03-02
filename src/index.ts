@@ -2007,8 +2007,8 @@ async function main(): Promise<void> {
     findChannel: (jid, discordBotId) => findChannelForJid(jid, discordBotId),
   });
   startIpcWatcher({
-    sendMessage: async (jid, rawText) => {
-      const ch = findChannelForJid(jid);
+    sendMessage: async (jid, rawText, discordBotId) => {
+      const ch = findChannelForJid(jid, discordBotId);
       if (!ch) {
         logger.warn({ jid }, 'No channel found for IPC message');
         return;
@@ -2059,6 +2059,13 @@ async function main(): Promise<void> {
     onSubscriptionChanged: invalidateChannelSubscriptions,
     activeRuntimeFolders: () => activeRuntimeFolders,
     agentFolders: () => new Set(Object.values(agents).map((a) => a.folder)),
+    getSubscriptions: (jid) => {
+      refreshChannelSubscriptions();
+      return (channelSubscriptions[jid] ?? []).map((s) => ({
+        agentId: s.agentId,
+        agentFolder: agents[s.agentId]?.folder ?? s.agentId,
+      }));
+    },
   });
 }
 
